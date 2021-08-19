@@ -1,0 +1,118 @@
+# Client Script runs only on the client
+# KrunkScript Copyright (C) Yendis Entertainment Pty Ltd
+# 
+# Add custom actions here
+
+# ===================================================================
+# RECOMMENDED SETTINGS:
+num MAX_JUMPCOUNT = 2; # 2 is "doublejump", 3 is "triplejump"
+bool WALLJUMP_REFRESHS = true;
+bool ENABLE_CROUCHJUMP = true; # lower height for crouch jump, also
+                                # applies "moonjump" mid-air physics
+
+# HARD-CODED NUMBERS - DON'T TOUCH
+num MS_DURATION_UNCROUCH = 166;
+num HEIGHT_JUMP = 0.0793; # 60FPS, max clearance 17.9 units
+num HEIGHT_CROUCHJUMP = 0.0595; # 60FPS, max clearance 10.2 units
+# ===================================================================
+
+# Runs when the game starts
+public action start() {
+
+}
+
+# Runs every game tick
+public action update(num delta) {
+
+}
+
+# Add rendering logic in here
+public action render(num delta) {
+
+}
+
+# Player spawns in
+public action onPlayerSpawn(str id) {
+
+}
+
+num jumpCount = 0;
+bool hasJumped = false;
+num timeLastCrouched = GAME.TIME.now();
+
+# Player update
+public action onPlayerUpdate(str id, num delta, obj inputs) {
+    obj player = GAME.PLAYERS.getSelf();
+    num timeNow = GAME.TIME.now();
+#     player.disableDefault("jump");
+
+    
+    if (inputs.crouch) {
+        timeLastCrouched = timeNow;
+    }
+    if(player.onGround) {
+        jumpCount = 0;
+    } else if (WALLJUMP_REFRESHS && player.onWall && inputs.jump) {
+        jumpCount = 1;
+    }
+    if(inputs.jump && jumpCount < MAX_JUMPCOUNT) {
+        if(!hasJumped) {
+            if(jumpCount > 0) {
+				# if (inputs.crouch) {
+				if (ENABLE_CROUCHJUMP && ((timeNow - timeLastCrouched) < MS_DURATION_UNCROUCH)) {
+					player.velocity.y = Math.lerp(HEIGHT_CROUCHJUMP,HEIGHT_JUMP,(timeNow - timeLastCrouched)/MS_DURATION_UNCROUCH);	# "moonjumping" calculation
+                    GAME.log(toStr Math.lerp(HEIGHT_CROUCHJUMP,HEIGHT_JUMP,(timeNow - timeLastCrouched)/MS_DURATION_UNCROUCH));
+				} else {
+					player.velocity.y = HEIGHT_JUMP;	
+				}
+                
+            }
+            jumpCount++;
+            hasJumped = true;
+        }
+    }
+    else {
+        hasJumped = false;
+    }
+    
+}
+
+# User pressed a key
+public action onKeyPress(str key, num code) {
+
+}
+
+# User released a key
+public action onKeyUp(str key, num code) {
+
+}
+
+# User held a key
+public action onKeyHeld(str key, num code) {
+
+}
+
+# User clicked on screen
+public action onMouseClick(num button, num x, num y) {
+
+}
+
+# User released clicked on screen
+public action onMouseUp(num button, num x, num y) {
+
+}
+
+# User scrolled on screen
+public action onMouseScroll(num dir) {
+
+}
+
+# User clicked a DIV (ID)
+public action onDIVClicked(str id) {
+
+}
+
+# Client receives network message
+public action onNetworkMessage(str id, dynamic obj data) {
+
+}

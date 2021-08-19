@@ -1,0 +1,103 @@
+# Server Script runs only on Hosted server & not in test mode
+# KrunkScript Copyright (C) Yendis Entertainment Pty Ltd
+# 
+# Add custom actions here
+
+# ===================================================================
+# RECOMMENDED SETTINGS:
+num MAX_JUMPCOUNT = 2; # 2 is "doublejump", 3 is "triplejump"
+bool WALLJUMP_REFRESHS = true;
+bool ENABLE_CROUCHJUMP = true; # lower height for crouch jump, also
+                                # applies "moonjump" mid-air physics
+
+# HARD-CODED NUMBERS - DON'T TOUCH
+num MS_DURATION_UNCROUCH = 166;
+num HEIGHT_JUMP = 0.0793; # 60FPS, max clearance 17.9 units
+num HEIGHT_CROUCHJUMP = 0.0595; # 60FPS, max clearance 10.2 units
+# ===================================================================
+# Runs when the game starts
+public action start() {
+
+}
+
+# Runs every game tick
+public action update(num delta) {
+
+}
+
+# Player spawns in
+public action onPlayerSpawn(str id) {
+
+}
+
+# obj  playerJumpStatus = {str id: "name", bool holdJump: false, num jumpcount: 0};
+obj jumpStatus = {str id: 'name', bool jumpPressed: false, num jumpCount: 0, num tLastCrouch: 0, num idx: 0};
+# str [][] list_PlrJStatus = str[][str['name','0','0', '0', '0']];
+obj[] list_PlrJStatus = obj[jumpStatus];
+
+obj action getPlayerJumpStatus (str id) {
+    num i = 0;
+	for (i = 0; i < lengthOf list_PlrJStatus; i++) {
+        if (list_PlrJStatus[i].id == id) {
+            return list_PlrJStatus[i];
+        }
+    } # else
+    addTo list_PlrJStatus {str id: id, bool jumpPressed: false, num jumpCount: 0, num tLastCrouch: 0,num idx: i};
+    return list_PlrJStatus[lengthOf list_PlrJStatus - 1];
+}
+
+public action onPlayerUpdate(str id, num delta, obj inputs) {
+    obj player = GAME.PLAYERS.findByID(id);
+    num timeNow = GAME.TIME.now();
+    #player.disableDefault("jump");
+    obj tPlrJStatus = getPlayerJumpStatus(id);
+    
+    
+    if (inputs.crouch) {
+        tPlrJStatus.tLastCrouch = timeNow;
+    }
+    if (player.onGround) {
+        tPlrJStatus.jumpCount = 0;
+
+    } else if (WALLJUMP_REFRESHS && player.onWall && inputs.jump) {
+        tPlrJStatus.jumpCount = 1;
+    }
+    if(inputs.jump && toNum tPlrJStatus.jumpCount < MAX_JUMPCOUNT) {
+        if(tPlrJStatus.jumpPressed == false) {
+			if (tPlrJStatus.jumpCount == 1) {
+				# if (inputs.crouch) {
+					# player.velocity.y = HEIGHT_CROUCHJUMP;	
+                if (ENABLE_CROUCHJUMP && (timeNow - (toNum tPlrJStatus.tLastCrouch)) < MS_DURATION_UNCROUCH) {
+					player.velocity.y = Math.lerp(HEIGHT_CROUCHJUMP,HEIGHT_JUMP,(timeNow - (toNum tPlrJStatus.tLastCrouch))/MS_DURATION_UNCROUCH);	
+                    
+                } else {
+                	player.velocity.y = HEIGHT_JUMP;	    
+                }
+                
+			}
+			tPlrJStatus.jumpCount++;
+            tPlrJStatus.jumpPressed = true;
+        }
+	} else {
+        tPlrJStatus.jumpPressed = false;
+    }
+    # GAME.log(tPlrJStatus.id + " " + toStr tPlrJStatus.jumpPressed + " " + toStr tPlrJStatus.jumpCount + " " + toStr tPlrJStatus.tLastCrouch);
+
+	list_PlrJStatus[tPlrJStatus.idx] = tPlrJStatus;
+}
+
+
+# Called from Custom Trigger Action
+public action onCustomTrigger(str playerID, str customParam) {
+
+}
+
+# Server receives network message
+public action onNetworkMessage(str id, dynamic obj data, str playerID) {
+
+}
+
+# When a player leaves the server
+public action onPlayerLeave(str playerID) {
+
+}
