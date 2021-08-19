@@ -20,3 +20,6 @@ Instructions:
     num HEIGHT_CROUCHJUMP = 0.0595; # 60FPS, max clearance 10.2 units
     # ===================================================================
     ```
+
+gif example
+https://streamable.com/gccxd1
