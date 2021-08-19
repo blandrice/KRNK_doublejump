@@ -5,7 +5,7 @@ Instructions:
 1. copy-paste & replace all text in doublejump_client.krnk / doublejump_host.krnk into client/host windows
 2. click Validate or ctrl-s to save
 
-3. OPTIONAL: to change settings like triplejump / refresh with walljump, change value on BOTH client and script settings:
+3. OPTIONAL: to change settings like triplejump / refresh with walljump, change value on BOTH client and host settings:
     ```cs
     # ===================================================================
     # RECOMMENDED SETTINGS:
