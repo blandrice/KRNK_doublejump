@@ -1,5 +1,5 @@
 # KRNK_doublejump
-double jump example for KrunkerScript
+double jump example for KrunkerScript - https://streamable.com/gccxd1
 
 Instructions:
 1. copy-paste & replace all text in doublejump_client.krnk / doublejump_host.krnk into client/host windows
@@ -20,6 +20,3 @@ Instructions:
     num HEIGHT_CROUCHJUMP = 0.0595; # 60FPS, max clearance 10.2 units
     # ===================================================================
     ```
-
-gif example
-https://streamable.com/gccxd1
