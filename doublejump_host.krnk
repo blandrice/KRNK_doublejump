@@ -4,7 +4,7 @@
 # Add custom actions here
 
 # ===================================================================
-# RECOMMENDED SETTINGS:
+# SETTINGS:
 num MAX_JUMPCOUNT = 2; # 2 is "doublejump", 3 is "triplejump"
 bool WALLJUMP_REFRESHS = true;
 bool ENABLE_CROUCHJUMP = true; # lower height for crouch jump, also
@@ -15,6 +15,10 @@ num MS_DURATION_UNCROUCH = 166;
 num HEIGHT_JUMP = 0.0793; # 60FPS, max clearance 17.9 units
 num HEIGHT_CROUCHJUMP = 0.0595; # 60FPS, max clearance 10.2 units
 # ===================================================================
+
+
+obj[] playersExtraProps = obj[];
+num timeNow = 0;
 # Runs when the game starts
 public action start() {
 
@@ -22,68 +26,100 @@ public action start() {
 
 # Runs every game tick
 public action update(num delta) {
-
+    timeNow = GAME.TIME.now();
+    if(!!lengthOf playersExtraProps && GAME.TIME.now() % 500 < delta){
+        obj[] players = GAME.PLAYERS.list();
+        GAME.log('##################################');
+        for(num i = 0; i < lengthOf players; i++){
+            obj player = players[i];
+            GAME.log('Player jumps: ' + toStr (num) player.sid + '; ' + toStr ((num)player.extraProps.jumpCnt));
+        }
+    }
 }
 
 # Player spawns in
 public action onPlayerSpawn(str id) {
+    obj player = GAME.PLAYERS.findByID(id);
+    
+    if((num) player.sid > lengthOf playersExtraProps){
+        addTo playersExtraProps {};
+    } 
 
+    obj playerExtraProps = playersExtraProps[(num) player.sid - 1];
+    player.extraProps = playerExtraProps;
+    playerExtraProps.jumpPressed = false;
+    playerExtraProps.jumpCount = 0;
+    playerExtraProps.tLastCrouch = 0;
 }
 
-# obj  playerJumpStatus = {str id: "name", bool holdJump: false, num jumpcount: 0};
-obj jumpStatus = {str id: 'name', bool jumpPressed: false, num jumpCount: 0, num tLastCrouch: 0, num idx: 0};
+# obj  playerJumpStatus = {id: "name", holdJump: false, jumpcount: 0};
+obj jumpStatus = {id: 'name', jumpPressed: false, jumpCount: 0, tLastCrouch: 0, idx: 0};
 # str [][] list_PlrJStatus = str[][str['name','0','0', '0', '0']];
 obj[] list_PlrJStatus = obj[jumpStatus];
 
 obj action getPlayerJumpStatus (str id) {
     num i = 0;
 	for (i = 0; i < lengthOf list_PlrJStatus; i++) {
-        if (list_PlrJStatus[i].id == id) {
+        if ((str)list_PlrJStatus[i].id == id) {
             return list_PlrJStatus[i];
         }
     } # else
-    addTo list_PlrJStatus {str id: id, bool jumpPressed: false, num jumpCount: 0, num tLastCrouch: 0,num idx: i};
+    addTo list_PlrJStatus {id: id, jumpPressed: false, jumpCount: 0, tLastCrouch: 0,idx: i};
     return list_PlrJStatus[lengthOf list_PlrJStatus - 1];
 }
 
-public action onPlayerUpdate(str id, num delta, obj inputs) {
-    obj player = GAME.PLAYERS.findByID(id);
-    num timeNow = GAME.TIME.now();
-    #player.disableDefault("jump");
-    obj tPlrJStatus = getPlayerJumpStatus(id);
+# # Player update
+# public action onPlayerUpdate(str id, num delta, static obj inputs) {
+#     obj player = GAME.PLAYERS.findByID(id);
     
-    
-    if (inputs.crouch) {
-        tPlrJStatus.tLastCrouch = timeNow;
-    }
-    if (player.onGround) {
-        tPlrJStatus.jumpCount = 0;
+#     if(!!player.extraProps.isSpectator){
+#         playersExtraProps[(num) player.sid - 1].isSpectator = false;
+#     }
+# }
 
-    } else if (WALLJUMP_REFRESHS && player.onWall && inputs.jump) {
-        tPlrJStatus.jumpCount = 1;
+
+public action onPlayerUpdate(str id, num delta, static obj inputs) {
+    obj player = GAME.PLAYERS.findByID(id);
+    #player.disableDefault("jump");
+    # playersExtraProps[(num) player.sid - 1]
+
+
+    # obj tPlrJStatus = getPlayerJumpStatus(id);
+    
+    
+    if ((bool) inputs.crouch) {
+        # tPlrJStatus.tLastCrouch = timeNow;
+        playersExtraProps[(num) player.sid - 1].tLastCrouch = timeNow;
     }
-    if(inputs.jump && toNum tPlrJStatus.jumpCount < MAX_JUMPCOUNT) {
-        if(tPlrJStatus.jumpPressed == false) {
-			if (tPlrJStatus.jumpCount == 1) {
-				# if (inputs.crouch) {
+    if ((bool) player.onGround) {
+        # tPlrJStatus.jumpCount = 0;
+        playersExtraProps[(num) player.sid - 1].jumpCnt = 0;
+
+    } else if (WALLJUMP_REFRESHS && (bool) player.onWall && (bool) inputs.jump) {
+        # tPlrJStatus.jumpCount = 1;
+        playersExtraProps[(num) player.sid - 1].jumpCnt = MAX_JUMPCOUNT-1;
+
+    }
+    if((bool) inputs.jump && (num) playersExtraProps[(num) player.sid - 1].jumpCnt < MAX_JUMPCOUNT) {
+        if((bool)playersExtraProps[(num) player.sid - 1].jumpPressed == false) {
+			if ((num)playersExtraProps[(num) player.sid - 1].jumpCnt == 1) {
+				# if ((num) inputs.crouch) {
 					# player.velocity.y = HEIGHT_CROUCHJUMP;	
-                if (ENABLE_CROUCHJUMP && (timeNow - (toNum tPlrJStatus.tLastCrouch)) < MS_DURATION_UNCROUCH) {
-					player.velocity.y = Math.lerp(HEIGHT_CROUCHJUMP,HEIGHT_JUMP,(timeNow - (toNum tPlrJStatus.tLastCrouch))/MS_DURATION_UNCROUCH);	
+                if (ENABLE_CROUCHJUMP && (timeNow - ((num) playersExtraProps[(num) player.sid - 1].tLastCrouch)) < MS_DURATION_UNCROUCH) {
+					player.velocity.y = Math.lerp(HEIGHT_CROUCHJUMP,HEIGHT_JUMP,(timeNow - ((num) playersExtraProps[(num) player.sid - 1].tLastCrouch))/MS_DURATION_UNCROUCH);	
                     
                 } else {
                 	player.velocity.y = HEIGHT_JUMP;	    
                 }
                 
 			}
-			tPlrJStatus.jumpCount++;
-            tPlrJStatus.jumpPressed = true;
+			(num) playersExtraProps[(num) player.sid - 1].jumpCnt++;
+            playersExtraProps[(num) player.sid - 1].jumpPressed = true;
         }
 	} else {
-        tPlrJStatus.jumpPressed = false;
+        playersExtraProps[(num) player.sid - 1].jumpPressed = false;
     }
-    # GAME.log(tPlrJStatus.id + " " + toStr tPlrJStatus.jumpPressed + " " + toStr tPlrJStatus.jumpCount + " " + toStr tPlrJStatus.tLastCrouch);
-
-	list_PlrJStatus[tPlrJStatus.idx] = tPlrJStatus;
+    # GAME.log((num) tPlrJStatus.id + " " + toStr (num) tPlrJStatus.jumpPressed + " " + toStr (num) tPlrJStatus.jumpCount + " " + toStr (num) tPlrJStatus.tLastCrouch);
 }
 
 
@@ -93,11 +129,16 @@ public action onCustomTrigger(str playerID, str customParam) {
 }
 
 # Server receives network message
-public action onNetworkMessage(str id, dynamic obj data, str playerID) {
+public action onNetworkMessage(str id, obj data, str playerID) {
 
 }
 
 # When a player leaves the server
 public action onPlayerLeave(str playerID) {
 
+}
+
+# Runs when the round ends
+public action onGameEnd() {
+    playersExtraProps = obj[];
 }

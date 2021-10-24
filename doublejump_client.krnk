@@ -4,7 +4,7 @@
 # Add custom actions here
 
 # ===================================================================
-# RECOMMENDED SETTINGS:
+# SETTINGS:
 num MAX_JUMPCOUNT = 2; # 2 is "doublejump", 3 is "triplejump"
 bool WALLJUMP_REFRESHS = true;
 bool ENABLE_CROUCHJUMP = true; # lower height for crouch jump, also
@@ -41,24 +41,23 @@ bool hasJumped = false;
 num timeLastCrouched = GAME.TIME.now();
 
 # Player update
-public action onPlayerUpdate(str id, num delta, obj inputs) {
+public action onPlayerUpdate(str id, num delta, static obj inputs) {
     obj player = GAME.PLAYERS.getSelf();
     num timeNow = GAME.TIME.now();
 #     player.disableDefault("jump");
 
-    
-    if (inputs.crouch) {
+    if ((bool) inputs.crouch) {
         timeLastCrouched = timeNow;
     }
-    if(player.onGround) {
+    if((bool) player.onGround) {
         jumpCount = 0;
-    } else if (WALLJUMP_REFRESHS && player.onWall && inputs.jump) {
+    } else if (WALLJUMP_REFRESHS && (bool) player.onWall && (bool) inputs.jump) {
         jumpCount = 1;
     }
-    if(inputs.jump && jumpCount < MAX_JUMPCOUNT) {
+    if((bool) inputs.jump && jumpCount < MAX_JUMPCOUNT) {
         if(!hasJumped) {
             if(jumpCount > 0) {
-				# if (inputs.crouch) {
+				# if ((num) inputs.crouch) {
 				if (ENABLE_CROUCHJUMP && ((timeNow - timeLastCrouched) < MS_DURATION_UNCROUCH)) {
 					player.velocity.y = Math.lerp(HEIGHT_CROUCHJUMP,HEIGHT_JUMP,(timeNow - timeLastCrouched)/MS_DURATION_UNCROUCH);	# "moonjumping" calculation
                     GAME.log(toStr Math.lerp(HEIGHT_CROUCHJUMP,HEIGHT_JUMP,(timeNow - timeLastCrouched)/MS_DURATION_UNCROUCH));
@@ -113,6 +112,6 @@ public action onDIVClicked(str id) {
 }
 
 # Client receives network message
-public action onNetworkMessage(str id, dynamic obj data) {
+public action onNetworkMessage(str id, obj data) {
 
 }
