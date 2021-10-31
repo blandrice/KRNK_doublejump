@@ -97,35 +97,28 @@ public action onPlayerUpdate(str id, num delta, static obj inputs) {
 
     } else if (WALLJUMP_REFRESHS && (bool) player.onWall && (bool) inputs.jump) {
         # tPlrJStatus.jumpCount = 1;
-        playersExtraProps[(num) player.sid - 1].jumpCnt = MAX_JUMPCOUNT-1;
+        playersExtraProps[(num) player.sid - 1].jumpCnt = 0;
 
     }
-    if((bool) inputs.jump && (num) playersExtraProps[(num) player.sid - 1].jumpCnt < MAX_JUMPCOUNT) {
-        if((bool)playersExtraProps[(num) player.sid - 1].jumpPressed == false) {
-			if ((num)playersExtraProps[(num) player.sid - 1].jumpCnt == 1) {
-				# if ((num) inputs.crouch) {
-					# player.velocity.y = HEIGHT_CROUCHJUMP;	
-                if (ENABLE_CROUCHJUMP && (timeNow - ((num) playersExtraProps[(num) player.sid - 1].tLastCrouch)) < MS_DURATION_UNCROUCH) {
-					player.velocity.y = Math.lerp(HEIGHT_CROUCHJUMP,HEIGHT_JUMP,(timeNow - ((num) playersExtraProps[(num) player.sid - 1].tLastCrouch))/MS_DURATION_UNCROUCH);	
-                    
-                } else {
-                	player.velocity.y = HEIGHT_JUMP;	    
-                }
+    if((bool) inputs.jump) {
+        if((bool)playersExtraProps[(num) player.sid - 1].jumpPressed == false  
+            && (num) playersExtraProps[(num) player.sid - 1].jumpCnt > 0 
+            && !(bool) player.onGround) {
+			# if ((num) inputs.crouch) {
+            # player.velocity.y = HEIGHT_CROUCHJUMP;	
+            if (ENABLE_CROUCHJUMP && (timeNow - ((num) playersExtraProps[(num) player.sid - 1].tLastCrouch)) < MS_DURATION_UNCROUCH) {
+                player.velocity.y = Math.lerp(HEIGHT_CROUCHJUMP,HEIGHT_JUMP,(timeNow - ((num) playersExtraProps[(num) player.sid - 1].tLastCrouch))/MS_DURATION_UNCROUCH);	
                 
-			}
-			(num) playersExtraProps[(num) player.sid - 1].jumpCnt++;
-            playersExtraProps[(num) player.sid - 1].jumpPressed = true;
+            } else {
+                player.velocity.y = HEIGHT_JUMP;	    
+            }
+			(num) playersExtraProps[(num) player.sid - 1].jumpCnt--;
         }
+        playersExtraProps[(num) player.sid - 1].jumpPressed = true;
 	} else {
         playersExtraProps[(num) player.sid - 1].jumpPressed = false;
     }
     # GAME.log((num) tPlrJStatus.id + " " + toStr (num) tPlrJStatus.jumpPressed + " " + toStr (num) tPlrJStatus.jumpCount + " " + toStr (num) tPlrJStatus.tLastCrouch);
-}
-
-
-# Called from Custom Trigger Action
-public action onCustomTrigger(str playerID, str customParam) {
-
 }
 
 # Server receives network message
@@ -141,4 +134,12 @@ public action onPlayerLeave(str playerID) {
 # Runs when the round ends
 public action onGameEnd() {
     playersExtraProps = obj[];
+}
+
+public action onCustomTrigger(str playerID, str customParam) {
+	if (customParam=="addJump") {
+        obj plr = GAME.PLAYERS.findByID(playerID);
+        playersExtraProps[(num) plr.sid - 1].jumpCnt = ((num) playersExtraProps[(num) plr.sid - 1].jumpCnt+1 > MAX_JUMPCOUNT) ? MAX_JUMPCOUNT : ((num) playersExtraProps[(num) plr.sid - 1].jumpCnt+1);
+        GAME.NETWORK.send("jumpUpdate", {cnt:playersExtraProps[(num) plr.sid - 1].jumpCnt}, playerID);
+	}
 }

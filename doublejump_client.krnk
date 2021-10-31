@@ -15,19 +15,33 @@ num MS_DURATION_UNCROUCH = 166;
 num HEIGHT_JUMP = 0.0793; # 60FPS, max clearance 17.9 units
 num HEIGHT_CROUCHJUMP = 0.0595; # 60FPS, max clearance 10.2 units
 # ===================================================================
+num jumpCount = 0;
+bool hasJumped = false;
+num timeLastCrouched = GAME.TIME.now();
+
 
 # Runs when the game starts
 public action start() {
 
 }
 
+num djalpha = 0;
+num finalalpha = 0;
+
 # Runs every game tick
 public action update(num delta) {
-
+    finalalpha = jumpCount > 0 ? 0.1 : 0;
+    if (djalpha > finalalpha + 0.01) {
+        djalpha = djalpha-((djalpha - finalalpha) * 0.003 * delta);
+    }
 }
+
 
 # Add rendering logic in here
 public action render(num delta) {
+    obj dim = GAME.OVERLAY.getSize(); # get overlay dimensions
+    GAME.OVERLAY.drawText(toStr jumpCount, (num)dim.width/2,(num)dim.height/2,0,24, "center", "#FF0000",1);
+    GAME.OVERLAY.drawRect(0,0,(num)dim.width,(num)dim.height,0,"#E2FF00",djalpha,false);
 
 }
 
@@ -35,10 +49,6 @@ public action render(num delta) {
 public action onPlayerSpawn(str id) {
 
 }
-
-num jumpCount = 0;
-bool hasJumped = false;
-num timeLastCrouched = GAME.TIME.now();
 
 # Player update
 public action onPlayerUpdate(str id, num delta, static obj inputs) {
@@ -51,24 +61,22 @@ public action onPlayerUpdate(str id, num delta, static obj inputs) {
     }
     if((bool) player.onGround) {
         jumpCount = 0;
+        # djalpha=0;
     } else if (WALLJUMP_REFRESHS && (bool) player.onWall && (bool) inputs.jump) {
-        jumpCount = 1;
+        jumpCount = 0;
     }
-    if((bool) inputs.jump && jumpCount < MAX_JUMPCOUNT) {
-        if(!hasJumped) {
-            if(jumpCount > 0) {
-				# if ((num) inputs.crouch) {
-				if (ENABLE_CROUCHJUMP && ((timeNow - timeLastCrouched) < MS_DURATION_UNCROUCH)) {
-					player.velocity.y = Math.lerp(HEIGHT_CROUCHJUMP,HEIGHT_JUMP,(timeNow - timeLastCrouched)/MS_DURATION_UNCROUCH);	# "moonjumping" calculation
-                    GAME.log(toStr Math.lerp(HEIGHT_CROUCHJUMP,HEIGHT_JUMP,(timeNow - timeLastCrouched)/MS_DURATION_UNCROUCH));
-				} else {
-					player.velocity.y = HEIGHT_JUMP;	
-				}
-                
+    if((bool) inputs.jump) {
+        if(!hasJumped  && jumpCount > 0 && !(bool)player.onGround) {
+            # if ((num) inputs.crouch) {
+            if (ENABLE_CROUCHJUMP && ((timeNow - timeLastCrouched) < MS_DURATION_UNCROUCH)) {
+                player.velocity.y = Math.lerp(HEIGHT_CROUCHJUMP,HEIGHT_JUMP,(timeNow - timeLastCrouched)/MS_DURATION_UNCROUCH);	# "moonjumping" calculation
+            } else {
+                player.velocity.y = HEIGHT_JUMP;	
             }
-            jumpCount++;
-            hasJumped = true;
+            GAME.SOUND.play2D(32576, 1, 0.5, false); # jump sound
+            jumpCount--;
         }
+        hasJumped = true;
     }
     else {
         hasJumped = false;
@@ -113,5 +121,9 @@ public action onDIVClicked(str id) {
 
 # Client receives network message
 public action onNetworkMessage(str id, obj data) {
-
+    if (id =="jumpUpdate") {
+        jumpCount = (num) data.cnt;
+        GAME.SOUND.play2D(32584, 1, 2, false); # pickup sound
+        djalpha = 0.2;
+    }
 }
