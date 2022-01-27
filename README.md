@@ -8,11 +8,12 @@ Instructions:
 3. OPTIONAL: to change settings like triplejump / refresh with walljump, change value on BOTH client and host settings:
     ```cs
     # ===================================================================
-    # RECOMMENDED SETTINGS:
+    # SETTINGS:
     num MAX_JUMPCOUNT = 2; # 2 is "doublejump", 3 is "triplejump"
     bool WALLJUMP_REFRESHS = true;
     bool ENABLE_CROUCHJUMP = true; # lower height for crouch jump, also
                                     # applies "moonjump" mid-air physics
+    num SOUND = 31960; # sound ID. set to 0 if no sound desired
 
     # HARD-CODED NUMBERS - DON'T TOUCH
     num MS_DURATION_UNCROUCH = 166;

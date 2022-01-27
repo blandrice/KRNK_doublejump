@@ -1,8 +1,3 @@
-# Server Script runs only on Hosted server & not in test mode
-# KrunkScript Copyright (C) Yendis Entertainment Pty Ltd
-# 
-# Add custom actions here
-
 # ===================================================================
 # SETTINGS:
 num MAX_JUMPCOUNT = 2; # 2 is "doublejump", 3 is "triplejump"
@@ -16,86 +11,24 @@ num HEIGHT_JUMP = 0.0793; # 60FPS, max clearance 17.9 units
 num HEIGHT_CROUCHJUMP = 0.0595; # 60FPS, max clearance 10.2 units
 # ===================================================================
 
-
-obj[] playersExtraProps = obj[];
 num timeNow = 0;
-# Runs when the game starts
-public action start() {
-
-}
 
 # Runs every game tick
 public action update(num delta) {
     timeNow = GAME.TIME.now();
-    if(!!lengthOf playersExtraProps && GAME.TIME.now() % 500 < delta){
-        obj[] players = GAME.PLAYERS.list();
-        GAME.log('##################################');
-        for(num i = 0; i < lengthOf players; i++){
-            obj player = players[i];
-            GAME.log('Player jumps: ' + toStr (num) player.sid + '; ' + toStr ((num)player.extraProps.jumpCnt));
-        }
-    }
 }
 
-# Player spawns in
-public action onPlayerSpawn(str id) {
+public action onPlayerUpdate(str id, num delta, obj inputs) {
+    timeNow = GAME.TIME.now();
     obj player = GAME.PLAYERS.findByID(id);
-    
-    if((num) player.sid > lengthOf playersExtraProps){
-        addTo playersExtraProps {};
-    } 
-
-    obj playerExtraProps = playersExtraProps[(num) player.sid - 1];
-    player.extraProps = playerExtraProps;
-    playerExtraProps.jumpPressed = false;
-    playerExtraProps.jumpCount = 0;
-    playerExtraProps.tLastCrouch = 0;
-}
-
-# obj  playerJumpStatus = {id: "name", holdJump: false, jumpcount: 0};
-obj jumpStatus = {id: 'name', jumpPressed: false, jumpCount: 0, tLastCrouch: 0, idx: 0};
-# str [][] list_PlrJStatus = str[][str['name','0','0', '0', '0']];
-obj[] list_PlrJStatus = obj[jumpStatus];
-
-obj action getPlayerJumpStatus (str id) {
-    num i = 0;
-	for (i = 0; i < lengthOf list_PlrJStatus; i++) {
-        if ((str)list_PlrJStatus[i].id == id) {
-            return list_PlrJStatus[i];
-        }
-    } # else
-    addTo list_PlrJStatus {id: id, jumpPressed: false, jumpCount: 0, tLastCrouch: 0,idx: i};
-    return list_PlrJStatus[lengthOf list_PlrJStatus - 1];
-}
-
-# # Player update
-# public action onPlayerUpdate(str id, num delta, static obj inputs) {
-#     obj player = GAME.PLAYERS.findByID(id);
-    
-#     if(!!player.extraProps.isSpectator){
-#         playersExtraProps[(num) player.sid - 1].isSpectator = false;
-#     }
-# }
-
-
-public action onPlayerUpdate(str id, num delta, static obj inputs) {
-    obj player = GAME.PLAYERS.findByID(id);
-    #player.disableDefault("jump");
-    # playersExtraProps[(num) player.sid - 1]
-
-
-    # obj tPlrJStatus = getPlayerJumpStatus(id);
-    
     
     if ((bool) inputs.crouch) {
-        # tPlrJStatus.tLastCrouch = timeNow;
-        playersExtraProps[(num) player.sid - 1].tLastCrouch = timeNow;
+        player.tLastCrouch = timeNow;
     }
     if ((bool) player.onGround) {
-        # tPlrJStatus.jumpCount = 0;
-        playersExtraProps[(num) player.sid - 1].jumpCnt = 0;
-
+        player.jumpCnt = MAX_JUMPCOUNT-1;
     } else if (WALLJUMP_REFRESHS && (bool) player.onWall && (bool) inputs.jump) {
+<<<<<<< Updated upstream
         # tPlrJStatus.jumpCount = 1;
         playersExtraProps[(num) player.sid - 1].jumpCnt = MAX_JUMPCOUNT-1;
 
@@ -116,9 +49,27 @@ public action onPlayerUpdate(str id, num delta, static obj inputs) {
 			(num) playersExtraProps[(num) player.sid - 1].jumpCnt++;
             playersExtraProps[(num) player.sid - 1].jumpPressed = true;
         }
-	} else {
-        playersExtraProps[(num) player.sid - 1].jumpPressed = false;
+=======
+        player.jumpCnt = MAX_JUMPCOUNT-1;
+
     }
+    if((bool) inputs.jump) {
+        if((bool)player.jumpPressed == false && (num) player.jumpCnt > 0 && !(bool) player.onGround) {
+            if (!(bool) player.onWall && WALLJUMP_REFRESHS) {
+                if (ENABLE_CROUCHJUMP && (timeNow - ((num) player.tLastCrouch)) < MS_DURATION_UNCROUCH) {
+                    player.velocity.y = Math.lerp(HEIGHT_CROUCHJUMP,HEIGHT_JUMP,(timeNow - ((num) player.tLastCrouch))/MS_DURATION_UNCROUCH);	
+                } else {
+                    player.velocity.y = HEIGHT_JUMP;	    
+                }
+                (num) player.jumpCnt--;
+            }
+        }
+        player.jumpPressed = true;
+>>>>>>> Stashed changes
+	} else {
+        player.jumpPressed = false;
+    }
+<<<<<<< Updated upstream
     # GAME.log((num) tPlrJStatus.id + " " + toStr (num) tPlrJStatus.jumpPressed + " " + toStr (num) tPlrJStatus.jumpCount + " " + toStr (num) tPlrJStatus.tLastCrouch);
 }
 
@@ -141,4 +92,6 @@ public action onPlayerLeave(str playerID) {
 # Runs when the round ends
 public action onGameEnd() {
     playersExtraProps = obj[];
+=======
+>>>>>>> Stashed changes
 }
