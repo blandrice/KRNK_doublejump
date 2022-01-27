@@ -1,5 +1,7 @@
 # KRNK_doublejump
-double jump example for KrunkerScript - https://streamable.com/gccxd1
+**🏃‍♂️ Try for yourself here! https://krunker.io/?play=djumpexample**
+
+Double-Jump example for KrunkerScript - https://streamable.com/gccxd1
 
 Instructions:
 1. copy-paste & replace all text in doublejump_client.krnk / doublejump_host.krnk into client/host windows
