@@ -11,12 +11,6 @@ num MS_DURATION_UNCROUCH = 166;
 num HEIGHT_JUMP = 0.0793; # 60FPS, max clearance 17.9 units
 num HEIGHT_CROUCHJUMP = 0.0595; # 60FPS, max clearance 10.2 units
 # ===================================================================
-<<<<<<< Updated upstream
-
-# Runs when the game starts
-public action start() {
-=======
->>>>>>> Stashed changes
 
 obj updateState = { updateId: 0, playerUpdateId: 0, lastUpdate: 0 };
 obj currentPlayerState = {};
@@ -62,26 +56,10 @@ obj action findHistoryState() {
     return currentPlayerState;
 }
 
-<<<<<<< Updated upstream
-# Runs every game tick
-public action update(num delta) {
-
-}
-
-# Add rendering logic in here
-public action render(num delta) {
-
-}
-
-# Player spawns in
-public action onPlayerSpawn(str id) {
-
-=======
 bool syncStarted = false;
 # Runs every game tick
 public action update(num delta) {
     syncStarted = false;
->>>>>>> Stashed changes
 }
 
 num jumpCount = 0;
@@ -108,27 +86,6 @@ public action onPlayerUpdate(str id, num delta, obj inputs) {
         player.timeLastCrouched = timeNow;
     }
     if((bool) player.onGround) {
-<<<<<<< Updated upstream
-        jumpCount = 0;
-    } else if (WALLJUMP_REFRESHS && (bool) player.onWall && (bool) inputs.jump) {
-        jumpCount = 1;
-    }
-    if((bool) inputs.jump && jumpCount < MAX_JUMPCOUNT) {
-        if(!hasJumped) {
-            if(jumpCount > 0) {
-				# if ((num) inputs.crouch) {
-				if (ENABLE_CROUCHJUMP && ((timeNow - timeLastCrouched) < MS_DURATION_UNCROUCH)) {
-					player.velocity.y = Math.lerp(HEIGHT_CROUCHJUMP,HEIGHT_JUMP,(timeNow - timeLastCrouched)/MS_DURATION_UNCROUCH);	# "moonjumping" calculation
-                    GAME.log(toStr Math.lerp(HEIGHT_CROUCHJUMP,HEIGHT_JUMP,(timeNow - timeLastCrouched)/MS_DURATION_UNCROUCH));
-				} else {
-					player.velocity.y = HEIGHT_JUMP;	
-				}
-                
-            }
-            jumpCount++;
-            hasJumped = true;
-        }
-=======
         currentPlayerState.jumpCount = MAX_JUMPCOUNT-1;
     } else if (WALLJUMP_REFRESHS && (bool) player.onWall && (bool) inputs.jump) {
         currentPlayerState.jumpCount = MAX_JUMPCOUNT-1;
@@ -148,7 +105,6 @@ public action onPlayerUpdate(str id, num delta, obj inputs) {
             }
         }
         currentPlayerState.hasJumped = true;
->>>>>>> Stashed changes
     }
     else {
         currentPlayerState.hasJumped = false;
@@ -168,38 +124,7 @@ public action onPlayerUpdate(str id, num delta, obj inputs) {
     updateState.lastUpdate = GAME.TIME.now();    
 }
 
-<<<<<<< Updated upstream
-# User held a key
-public action onKeyHeld(str key, num code) {
-
-}
-
-# User clicked on screen
-public action onMouseClick(num button, num x, num y) {
-
-}
-
-# User released clicked on screen
-public action onMouseUp(num button, num x, num y) {
-
-}
-
-# User scrolled on screen
-public action onMouseScroll(num dir) {
-
-}
-
-# User clicked a DIV (ID)
-public action onDIVClicked(str id) {
-
-}
-
-# Client receives network message
-public action onNetworkMessage(str id, obj data) {
-
-=======
 public action onPlayerSpawn(str id) {
     updateState.updateId = 0;
     updateState.playerUpdateId = 0;
->>>>>>> Stashed changes
 }

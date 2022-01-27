@@ -28,28 +28,6 @@ public action onPlayerUpdate(str id, num delta, obj inputs) {
     if ((bool) player.onGround) {
         player.jumpCnt = MAX_JUMPCOUNT-1;
     } else if (WALLJUMP_REFRESHS && (bool) player.onWall && (bool) inputs.jump) {
-<<<<<<< Updated upstream
-        # tPlrJStatus.jumpCount = 1;
-        playersExtraProps[(num) player.sid - 1].jumpCnt = MAX_JUMPCOUNT-1;
-
-    }
-    if((bool) inputs.jump && (num) playersExtraProps[(num) player.sid - 1].jumpCnt < MAX_JUMPCOUNT) {
-        if((bool)playersExtraProps[(num) player.sid - 1].jumpPressed == false) {
-			if ((num)playersExtraProps[(num) player.sid - 1].jumpCnt == 1) {
-				# if ((num) inputs.crouch) {
-					# player.velocity.y = HEIGHT_CROUCHJUMP;	
-                if (ENABLE_CROUCHJUMP && (timeNow - ((num) playersExtraProps[(num) player.sid - 1].tLastCrouch)) < MS_DURATION_UNCROUCH) {
-					player.velocity.y = Math.lerp(HEIGHT_CROUCHJUMP,HEIGHT_JUMP,(timeNow - ((num) playersExtraProps[(num) player.sid - 1].tLastCrouch))/MS_DURATION_UNCROUCH);	
-                    
-                } else {
-                	player.velocity.y = HEIGHT_JUMP;	    
-                }
-                
-			}
-			(num) playersExtraProps[(num) player.sid - 1].jumpCnt++;
-            playersExtraProps[(num) player.sid - 1].jumpPressed = true;
-        }
-=======
         player.jumpCnt = MAX_JUMPCOUNT-1;
 
     }
@@ -65,33 +43,7 @@ public action onPlayerUpdate(str id, num delta, obj inputs) {
             }
         }
         player.jumpPressed = true;
->>>>>>> Stashed changes
 	} else {
         player.jumpPressed = false;
     }
-<<<<<<< Updated upstream
-    # GAME.log((num) tPlrJStatus.id + " " + toStr (num) tPlrJStatus.jumpPressed + " " + toStr (num) tPlrJStatus.jumpCount + " " + toStr (num) tPlrJStatus.tLastCrouch);
-}
-
-
-# Called from Custom Trigger Action
-public action onCustomTrigger(str playerID, str customParam) {
-
-}
-
-# Server receives network message
-public action onNetworkMessage(str id, obj data, str playerID) {
-
-}
-
-# When a player leaves the server
-public action onPlayerLeave(str playerID) {
-
-}
-
-# Runs when the round ends
-public action onGameEnd() {
-    playersExtraProps = obj[];
-=======
->>>>>>> Stashed changes
 }
